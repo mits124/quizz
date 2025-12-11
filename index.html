@@ -1,0 +1,725 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Icy Christmas Gift Game</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Arial', sans-serif;
+            background: linear-gradient(to bottom, #ffffff, #d4f1f9);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            position: relative;
+            overflow-x: hidden;
+        }
+
+        /* ============================================
+           FALLING SNOW EFFECT
+        ============================================ */
+        .snowflake {
+            position: fixed;
+            top: -10px;
+            color: #fff;
+            font-size: 1em;
+            opacity: 0.8;
+            pointer-events: none;
+            z-index: 9999;
+            text-shadow: 0 0 3px rgba(173, 216, 230, 0.8);
+            animation: fall linear infinite;
+        }
+
+        @keyframes fall {
+            0% {
+                transform: translateY(-10px) rotate(0deg);
+            }
+            100% {
+                transform: translateY(100vh) rotate(360deg);
+            }
+        }
+
+        /* ============================================
+           MAIN CONTAINER
+        ============================================ */
+        .container {
+            text-align: center;
+            z-index: 10;
+            position: relative;
+            padding: 20px;
+            max-width: 1200px;
+            width: 100%;
+        }
+
+        h1 {
+            color: #6B0403;
+            font-size: 3em;
+            margin-bottom: 50px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.1);
+            font-weight: bold;
+            letter-spacing: 2px;
+        }
+
+        /* ============================================
+           GIFT BOXES GRID
+        ============================================ */
+        .gifts-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 40px;
+            max-width: 900px;
+            margin: 0 auto;
+        }
+
+        .gift-box {
+            width: 200px;
+            height: 200px;
+            background: linear-gradient(135deg, #ff6b6b 0%, #c92a2a 100%);
+            border-radius: 8px;
+            cursor: pointer;
+            position: relative;
+            transition: all 0.3s ease;
+            box-shadow: 0 15px 35px rgba(0,0,0,0.2), 
+                        0 5px 15px rgba(201, 42, 42, 0.3);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .gift-box:not(.opened):hover {
+            transform: scale(1.1) translateY(-5px);
+            box-shadow: 0 20px 50px rgba(0,0,0,0.3),
+                        0 10px 25px rgba(201, 42, 42, 0.4);
+        }
+
+        /* Gift Box Ribbon - Orange/Gold Gradient */
+        .gift-box::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 40px;
+            height: 100%;
+            background: linear-gradient(180deg, #ffd89b 0%, #ff9a56 50%, #ff7b3d 100%);
+            z-index: 1;
+            box-shadow: inset -2px 0 4px rgba(0,0,0,0.1),
+                        inset 2px 0 4px rgba(255,255,255,0.3);
+        }
+
+        .gift-box::after {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 0;
+            transform: translateY(-50%);
+            width: 100%;
+            height: 40px;
+            background: linear-gradient(90deg, #ffd89b 0%, #ff9a56 50%, #ff7b3d 100%);
+            z-index: 1;
+            box-shadow: inset 0 -2px 4px rgba(0,0,0,0.1),
+                        inset 0 2px 4px rgba(255,255,255,0.3);
+        }
+
+        /* Ribbon Bow on Top - Multi-loop 3D style */
+        .ribbon-bow {
+            position: absolute;
+            top: -35px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 80px;
+            height: 70px;
+            z-index: 3;
+        }
+
+        /* Back left loop */
+        .ribbon-bow::before {
+            content: '';
+            position: absolute;
+            top: 10px;
+            left: -8px;
+            width: 40px;
+            height: 45px;
+            background: linear-gradient(135deg, #ffd89b 0%, #ff9a56 50%, #ff7b3d 100%);
+            border-radius: 50% 50% 50% 0;
+            transform: rotate(-25deg);
+            box-shadow: -2px 3px 8px rgba(0,0,0,0.2),
+                        inset 2px -2px 6px rgba(255,255,255,0.4);
+        }
+
+        /* Back right loop */
+        .ribbon-bow::after {
+            content: '';
+            position: absolute;
+            top: 10px;
+            right: -8px;
+            width: 40px;
+            height: 45px;
+            background: linear-gradient(225deg, #ffd89b 0%, #ff9a56 50%, #ff7b3d 100%);
+            border-radius: 50% 50% 0 50%;
+            transform: rotate(25deg);
+            box-shadow: 2px 3px 8px rgba(0,0,0,0.2),
+                        inset -2px -2px 6px rgba(255,255,255,0.4);
+        }
+
+        /* Front left loop */
+        .bow-loop-left {
+            position: absolute;
+            top: 5px;
+            left: 3px;
+            width: 35px;
+            height: 40px;
+            background: linear-gradient(135deg, #ffe4b5 0%, #ffb366 50%, #ff8c42 100%);
+            border-radius: 50% 50% 50% 0;
+            transform: rotate(-35deg);
+            box-shadow: -2px 2px 6px rgba(0,0,0,0.25),
+                        inset 3px -3px 8px rgba(255,255,255,0.5);
+        }
+
+        /* Front right loop */
+        .bow-loop-right {
+            position: absolute;
+            top: 5px;
+            right: 3px;
+            width: 35px;
+            height: 40px;
+            background: linear-gradient(225deg, #ffe4b5 0%, #ffb366 50%, #ff8c42 100%);
+            border-radius: 50% 50% 0 50%;
+            transform: rotate(35deg);
+            box-shadow: 2px 2px 6px rgba(0,0,0,0.25),
+                        inset -3px -3px 8px rgba(255,255,255,0.5);
+        }
+
+        /* Center knot */
+        .bow-center {
+            position: absolute;
+            top: 25px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 28px;
+            height: 28px;
+            background: linear-gradient(135deg, #ffb366 0%, #ff8c42 50%, #ff6b3d 100%);
+            border-radius: 50%;
+            box-shadow: 0 3px 8px rgba(0,0,0,0.3),
+                        inset -2px -2px 6px rgba(0,0,0,0.2),
+                        inset 2px 2px 6px rgba(255,255,255,0.6);
+            z-index: 5;
+        }
+
+        /* Ribbon tails */
+        .bow-tail-left {
+            position: absolute;
+            top: 45px;
+            left: 8px;
+            width: 18px;
+            height: 30px;
+            background: linear-gradient(135deg, #ffd89b 0%, #ff9a56 50%, #ff7b3d 100%);
+            clip-path: polygon(0 0, 100% 0, 50% 100%);
+            transform: rotate(-15deg);
+            box-shadow: -1px 2px 4px rgba(0,0,0,0.2);
+        }
+
+        .bow-tail-right {
+            position: absolute;
+            top: 45px;
+            right: 8px;
+            width: 18px;
+            height: 30px;
+            background: linear-gradient(225deg, #ffd89b 0%, #ff9a56 50%, #ff7b3d 100%);
+            clip-path: polygon(0 0, 100% 0, 50% 100%);
+            transform: rotate(15deg);
+            box-shadow: 1px 2px 4px rgba(0,0,0,0.2);
+        }
+
+        .gift-number {
+            font-size: 3em;
+            color: #fff;
+            font-weight: bold;
+            z-index: 2;
+            text-shadow: 2px 2px 6px rgba(0,0,0,0.4);
+        }
+
+        /* Opened/Disabled Gift Box */
+        .gift-box.opened {
+            background: linear-gradient(135deg, #999 0%, #666 100%);
+            cursor: not-allowed;
+            opacity: 0.5;
+        }
+
+        .gift-box.opened::before,
+        .gift-box.opened::after {
+            background: linear-gradient(180deg, #aaa 0%, #888 50%, #666 100%);
+        }
+
+        /* ============================================
+           MODAL BASE STYLES
+        ============================================ */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.75);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .modal.active {
+            display: flex;
+        }
+
+        /* ============================================
+           QUESTION MODAL
+        ============================================ */
+        .question-modal-content {
+            background: #fff2e6;
+            padding: 40px;
+            border-radius: 16px;
+            max-width: 650px;
+            width: 90%;
+            box-shadow: 0 15px 50px rgba(0,0,0,0.5);
+            animation: slideDown 0.4s ease;
+        }
+
+        @keyframes slideDown {
+            from {
+                transform: translateY(-50px);
+                opacity: 0;
+            }
+            to {
+                transform: translateY(0);
+                opacity: 1;
+            }
+        }
+
+        .question-title {
+            font-size: 1.7em;
+            color: #6B0403;
+            margin-bottom: 30px;
+            font-weight: bold;
+            line-height: 1.5;
+        }
+
+        .answers-grid {
+            display: grid;
+            gap: 15px;
+        }
+
+        .answer-btn {
+            padding: 18px 22px;
+            font-size: 1.05em;
+            background: #fff;
+            color: #333;
+            border: 2px solid #ccc;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-align: left;
+            font-weight: 500;
+        }
+
+        .answer-btn:hover {
+            background: #6B0403;
+            color: #fff;
+            border-color: #6B0403;
+            transform: scale(1.03);
+            box-shadow: 0 5px 15px rgba(107, 4, 3, 0.4);
+        }
+
+        /* ============================================
+           REWARD MODAL
+        ============================================ */
+        .reward-modal-content {
+            background: #fff2e6;
+            padding: 40px;
+            border-radius: 16px;
+            max-width: 480px;
+            width: 90%;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.6);
+            text-align: center;
+            animation: scaleIn 0.5s ease;
+        }
+
+        @keyframes scaleIn {
+            0% {
+                transform: scale(0.7);
+                opacity: 0;
+            }
+            100% {
+                transform: scale(1);
+                opacity: 1;
+            }
+        }
+
+        .reward-header {
+            font-size: 2.8em;
+            font-weight: bold;
+            color: #6B0403;
+            text-transform: uppercase;
+            margin-bottom: 25px;
+            letter-spacing: 2px;
+        }
+
+        .reward-subtext {
+            font-size: 1.3em;
+            color: #666;
+            margin-bottom: 30px;
+            font-weight: 500;
+        }
+
+        .reward-content {
+            background: linear-gradient(135deg, #fff9f0 0%, #ffe8cc 100%);
+            padding: 35px;
+            border-radius: 12px;
+            margin-bottom: 30px;
+            border: 3px solid #6B0403;
+            box-shadow: inset 0 2px 8px rgba(0,0,0,0.1);
+        }
+
+        .reward-icon {
+            font-size: 4.5em;
+            margin-bottom: 15px;
+        }
+
+        .reward-text {
+            font-size: 1.9em;
+            color: #6B0403;
+            font-weight: bold;
+            line-height: 1.4;
+        }
+
+        .claim-btn {
+            padding: 16px 60px;
+            font-size: 1.3em;
+            background: #6B0403;
+            color: #fff;
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-weight: bold;
+            box-shadow: 0 5px 15px rgba(107, 4, 3, 0.4);
+        }
+
+        .claim-btn:hover {
+            background: #550302;
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(107, 4, 3, 0.5);
+        }
+
+        /* ============================================
+           WRONG ANSWER MODAL
+        ============================================ */
+        .wrong-modal-content {
+            background: #fff2e6;
+            padding: 45px;
+            border-radius: 16px;
+            max-width: 400px;
+            width: 90%;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.6);
+            text-align: center;
+            animation: shake 0.5s ease;
+        }
+
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-10px); }
+            75% { transform: translateX(10px); }
+        }
+
+        .wrong-header {
+            font-size: 3em;
+            font-weight: bold;
+            color: #6B0403;
+            margin-bottom: 20px;
+            text-transform: uppercase;
+        }
+
+        .wrong-emoji {
+            font-size: 4em;
+            margin-bottom: 20px;
+        }
+
+        .wrong-subtext {
+            font-size: 1.2em;
+            color: #666;
+            margin-top: 10px;
+        }
+
+        /* ============================================
+           RESPONSIVE DESIGN
+        ============================================ */
+        @media (max-width: 768px) {
+            h1 { 
+                font-size: 2em; 
+                margin-bottom: 30px;
+            }
+            .gifts-grid { 
+                grid-template-columns: repeat(2, 1fr); 
+                gap: 25px;
+            }
+            .gift-box { 
+                width: 150px; 
+                height: 150px; 
+            }
+            .gift-number { font-size: 2.5em; }
+            .reward-header { font-size: 2.2em; }
+            .reward-text { font-size: 1.5em; }
+            .question-title { font-size: 1.4em; }
+        }
+
+        @media (max-width: 480px) {
+            .gifts-grid { 
+                grid-template-columns: 1fr;
+                gap: 20px;
+            }
+            .gift-box {
+                width: 180px;
+                height: 180px;
+                margin: 0 auto;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Falling Snow Container -->
+    <div id="snowContainer"></div>
+
+    <!-- Main Container -->
+    <div class="container">
+        <h1>🎄 ICY CHRISTMAS QUIZ 🎅</h1>
+        
+        <!-- Gift Boxes Grid -->
+        <div class="gifts-grid" id="giftsGrid"></div>
+    </div>
+
+    <!-- Question Modal -->
+    <div class="modal" id="questionModal">
+        <div class="question-modal-content">
+            <div class="question-title" id="questionText"></div>
+            <div class="answers-grid" id="answersContainer"></div>
+        </div>
+    </div>
+
+    <!-- Reward Modal -->
+    <div class="modal" id="rewardModal">
+        <div class="reward-modal-content">
+            <div class="reward-header">CONGRATULATIONS!</div>
+            <div class="reward-subtext">Your reward is:</div>
+            <div class="reward-content">
+                <div class="reward-icon" id="rewardIcon">🎁</div>
+                <div class="reward-text" id="rewardText"></div>
+            </div>
+            <button class="claim-btn" id="claimBtn">Claim Gift</button>
+        </div>
+    </div>
+
+    <!-- Wrong Answer Modal -->
+    <div class="modal" id="wrongModal">
+        <div class="wrong-modal-content">
+            <div class="wrong-header">WRONG!</div>
+            <div class="wrong-emoji">😢</div>
+            <div class="wrong-subtext">Try again!</div>
+        </div>
+    </div>
+
+    <script>
+        // ============================================================
+        // GAME DATA - EXACT QUESTIONS AS REQUESTED
+        // ============================================================
+        const questionsData = [
+            {
+                id: 1,
+                question: "Traditional gender norms",
+                options: ["Only women stay at home", "Society's expectations of men's and women's behavior", "Everyone can do anything freely", "Only men work outside"],
+                correct: 1,
+                reward: "Một tràng pháo tay 👏"
+            },
+            {
+                id: 2,
+                question: "Dependency",
+                options: ["Being fully independent", "Helping others equally", "Ignoring others", "Relying on someone for money or support"],
+                correct: 3,
+                reward: "Một chiếc kẹo ngọt 🍬"
+            },
+            {
+                id: 3,
+                question: "Objectification",
+                options: ["Listening politely", "Showing respect", "Treating someone as an object", "Giving gifts"],
+                correct: 2,
+                reward: "Một lời chúc may mắn 🍀"
+            },
+            {
+                id: 4,
+                question: "Belief men and women are naturally different",
+                options: ["Egalitarian", "Constructivism", "Autonomy", "Essentialism"],
+                correct: 3,
+                reward: "Một nụ cười thật tươi 😊"
+            },
+            {
+                id: 5,
+                question: "Ability to make own decisions",
+                options: ["Dependency", "Autonomy", "Subservience", "Objectification"],
+                correct: 1,
+                reward: "Một cái bắt tay nồng ấm 🤝"
+            },
+            {
+                id: 6,
+                question: "Controlling others \"for their good\"",
+                options: ["Androcentric", "Egalitarian", "Paternalistic", "Paternalistic"],
+                correct: 2,
+                reward: "Một món quà bí mật 🎁"
+            }
+        ];
+
+        // ============================================================
+        // GAME STATE
+        // ============================================================
+        let openedGifts = new Array(6).fill(false);
+        let currentGiftIndex = -1;
+
+        // ============================================================
+        // FALLING SNOW ANIMATION
+        // ============================================================
+        function createSnowflakes() {
+            const snowContainer = document.getElementById('snowContainer');
+            const snowflakeCount = 80;
+
+            for (let i = 0; i < snowflakeCount; i++) {
+                const snowflake = document.createElement('div');
+                snowflake.className = 'snowflake';
+                snowflake.textContent = '❄';
+                
+                snowflake.style.left = Math.random() * 100 + '%';
+                snowflake.style.fontSize = (Math.random() * 12 + 12) + 'px';
+                snowflake.style.animationDuration = (Math.random() * 4 + 4) + 's';
+                snowflake.style.animationDelay = Math.random() * 5 + 's';
+                snowflake.style.opacity = Math.random() * 0.4 + 0.4;
+                
+                snowContainer.appendChild(snowflake);
+            }
+        }
+
+        // ============================================================
+        // INITIALIZE GIFT BOXES
+        // ============================================================
+        function createGiftBoxes() {
+            const giftsGrid = document.getElementById('giftsGrid');
+            
+            for (let i = 0; i < 6; i++) {
+                const giftBox = document.createElement('div');
+                giftBox.className = 'gift-box';
+                giftBox.innerHTML = `
+                    <div class="ribbon-bow">
+                        <div class="bow-loop-left"></div>
+                        <div class="bow-loop-right"></div>
+                        <div class="bow-center"></div>
+                        <div class="bow-tail-left"></div>
+                        <div class="bow-tail-right"></div>
+                    </div>
+                    <div class="gift-number">${i + 1}</div>
+                `;
+                giftBox.addEventListener('click', () => handleGiftClick(i));
+                giftsGrid.appendChild(giftBox);
+            }
+        }
+
+        // ============================================================
+        // HANDLE GIFT BOX CLICK
+        // ============================================================
+        function handleGiftClick(index) {
+            if (openedGifts[index]) return;
+            
+            currentGiftIndex = index;
+            showQuestionModal(index);
+        }
+
+        // ============================================================
+        // SHOW QUESTION MODAL
+        // ============================================================
+        function showQuestionModal(giftIndex) {
+            const data = questionsData[giftIndex];
+            
+            document.getElementById('questionText').textContent = data.question;
+            
+            const answersContainer = document.getElementById('answersContainer');
+            answersContainer.innerHTML = '';
+            
+            data.options.forEach((option, index) => {
+                const btn = document.createElement('button');
+                btn.className = 'answer-btn';
+                btn.textContent = option;
+                btn.addEventListener('click', () => handleAnswer(index, data.correct, data));
+                answersContainer.appendChild(btn);
+            });
+            
+            document.getElementById('questionModal').classList.add('active');
+        }
+
+        // ============================================================
+        // HANDLE ANSWER
+        // ============================================================
+        function handleAnswer(selectedIndex, correctIndex, data) {
+            document.getElementById('questionModal').classList.remove('active');
+            
+            if (selectedIndex === correctIndex) {
+                showRewardModal(data);
+            } else {
+                showWrongModal();
+            }
+        }
+
+        // ============================================================
+        // SHOW REWARD MODAL
+        // ============================================================
+        function showRewardModal(data) {
+            const rewardParts = data.reward.split(' ');
+            const emoji = rewardParts[rewardParts.length - 1];
+            const text = rewardParts.slice(0, -1).join(' ');
+            
+            document.getElementById('rewardIcon').textContent = emoji;
+            document.getElementById('rewardText').textContent = text;
+            document.getElementById('rewardModal').classList.add('active');
+        }
+
+        // ============================================================
+        // SHOW WRONG MODAL
+        // ============================================================
+        function showWrongModal() {
+            document.getElementById('wrongModal').classList.add('active');
+            
+            setTimeout(() => {
+                document.getElementById('wrongModal').classList.remove('active');
+            }, 2500);
+        }
+
+        // ============================================================
+        // CLAIM REWARD BUTTON
+        // ============================================================
+        document.getElementById('claimBtn').addEventListener('click', () => {
+            openedGifts[currentGiftIndex] = true;
+            
+            const giftBoxes = document.querySelectorAll('.gift-box');
+            giftBoxes[currentGiftIndex].classList.add('opened');
+            
+            document.getElementById('rewardModal').classList.remove('active');
+        });
+
+        // ============================================================
+        // INITIALIZE GAME
+        // ============================================================
+        createSnowflakes();
+        createGiftBoxes();
+    </script>
+</body>
+</html>
